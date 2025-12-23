@@ -1,0 +1,132 @@
+name: Code Quality Checks
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check HTML validity
+        run: |
+          echo "🗑 Checking HTML structure..."
+          
+          # Проверяем что файл существует
+          if [ ! -f "index.html" ]; then
+            echo "❌ Error: index.html not found"
+            exit 1
+          fi
+          
+          # Проверяем DOCTYPE
+          if ! grep -q '<!DOCTYPE html>' index.html; then
+            echo "❌ Error: Missing DOCTYPE"
+            exit 1
+          fi
+          echo "✅ DOCTYPE found"
+          
+          # Проверяем meta charset
+          if ! grep -q 'charset=UTF-8' index.html; then
+            echo "❌ Error: Missing charset"
+            exit 1
+          fi
+          echo "✅ Charset declaration found"
+          
+          # Проверяем viewport
+          if ! grep -q 'viewport' index.html; then
+            echo "❌ Error: Missing viewport meta tag"
+            exit 1
+          fi
+          echo "✅ Viewport meta tag found"
+
+      - name: Check for required elements
+        run: |
+          echo "🗑 Checking required elements..."
+          
+          # Проверяем наличие style тега
+          if ! grep -q '<style>' index.html; then
+            echo "❌ Error: Missing <style> tag"
+            exit 1
+          fi
+          echo "✅ <style> tag found"
+          
+          # Проверяем наличие script тега
+          if ! grep -q '<script>' index.html; then
+            echo "❌ Error: Missing <script> tag"
+            exit 1
+          fi
+          echo "✅ <script> tag found"
+          
+          # Проверяем main container
+          if ! grep -q 'container' index.html; then
+            echo "❌ Error: Missing container element"
+            exit 1
+          fi
+          echo "✅ Container element found"
+
+      - name: Check CSS variables
+        run: |
+          echo "🗑 Checking CSS variables..."
+          
+          # Проверяем количество CSS переменных
+          color_vars=$(grep -o '--color-[a-z]*:' index.html | wc -l)
+          echo "Found $color_vars color variables"
+          
+          if [ $color_vars -lt 5 ]; then
+            echo "❌ Error: Not enough color variables defined"
+            exit 1
+          fi
+          echo "✅ CSS variables properly defined"
+
+      - name: Check JavaScript functions
+        run: |
+          echo "🗑 Checking JavaScript functions..."
+          
+          # Проверяем ключевые функции
+          functions=("analyzePattern" "drawChart" "scanPair" "displayResults" "clearResults")
+          
+          for func in "${functions[@]}"; do
+            if grep -q "function $func" index.html; then
+              echo "✅ Function '$func' found"
+            else
+              echo "❌ Error: Function '$func' not found"
+              exit 1
+            fi
+          done
+
+      - name: Check file integrity
+        run: |
+          echo "🗑 Checking file integrity..."
+          
+          # Проверяем наличие DEMO_DATA
+          if ! grep -q 'const DEMO_DATA' index.html; then
+            echo "❌ Error: DEMO_DATA not found"
+            exit 1
+          fi
+          echo "✅ DEMO_DATA defined"
+          
+          # Проверяем BTC/USDT data
+          if ! grep -q "'BTC/USDT'" index.html; then
+            echo "❌ Error: BTC/USDT test data not found"
+            exit 1
+          fi
+          echo "✅ BTC/USDT test data found"
+
+      - name: Summary
+        run: |
+          echo ""
+          echo "============================================"
+          echo "✅ All quality checks passed!"
+          echo "============================================"
+          echo ""
+          echo "File: index.html"
+          echo "Size: $(wc -c < index.html) bytes"
+          echo "Lines: $(wc -l < index.html) lines"
+          echo ""
