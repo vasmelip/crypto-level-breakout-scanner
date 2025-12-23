@@ -1,0 +1,61 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate HTML
+        run: |
+          # Проверяем что index.html существует
+          if [ ! -f "index.html" ]; then
+            echo "Error: index.html not found!"
+            exit 1
+          fi
+          echo "✅ index.html found"
+          echo "File size: $(wc -c < index.html) bytes"
+
+      - name: Check for .nojekyll
+        run: |
+          if [ ! -f ".nojekyll" ]; then
+            echo "Warning: .nojekyll not found, GitHub Pages will process Jekyll"
+          else
+            echo "✅ .nojekyll found"
+          fi
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Print deployment URL
+        run: |
+          echo "🚀 Deployment successful!"
+          echo "URL: https://vasmelip.github.io/crypto-level-breakout-scanner/"
+          echo "Status: Ready to access"
