@@ -1,0 +1,104 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Get tag name
+        id: tag
+        run: echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Create release notes
+        id: release_notes
+        run: |
+          TAG=${{ steps.tag.outputs.TAG_NAME }}
+          echo "release_body<<EOF" >> $GITHUB_OUTPUT
+          echo "# Crypto Level Breakout Scanner $TAG" >> $GITHUB_OUTPUT
+          echo "" >> $GITHUB_OUTPUT
+          echo "## Release Information" >> $GITHUB_OUTPUT
+          echo "" >> $GITHUB_OUTPUT
+          echo "**Release**: $TAG" >> $GITHUB_OUTPUT
+          echo "**Date**: $(date '+%Y-%m-%d')" >> $GITHUB_OUTPUT
+          echo "**Commit**: ${{ github.sha }}" >> $GITHUB_OUTPUT
+          echo "" >> $GITHUB_OUTPUT
+          echo "## Files Included" >> $GITHUB_OUTPUT
+          echo "" >> $GITHUB_OUTPUT
+          echo "- ✅ index.html - Main application" >> $GITHUB_OUTPUT
+          echo "- 📖 README.md - Documentation" >> $GITHUB_OUTPUT
+          echo "- 🚀 QUICK_START.md - Deployment guide" >> $GITHUB_OUTPUT
+          echo "- 🔧 DEPLOY.sh - Automated setup script" >> $GITHUB_OUTPUT
+          echo "- 🎯 .nojekyll - GitHub Pages configuration" >> $GITHUB_OUTPUT
+          echo "" >> $GITHUB_OUTPUT
+          echo "## Access the Application" >> $GITHUB_OUTPUT
+          echo "" >> $GITHUB_OUTPUT
+          echo "- **Live Version**: https://vasmelip.github.io/crypto-level-breakout-scanner/" >> $GITHUB_OUTPUT
+          echo "- **Repository**: https://github.com/vasmelip/crypto-level-breakout-scanner" >> $GITHUB_OUTPUT
+          echo "" >> $GITHUB_OUTPUT
+          echo "## Installation" >> $GITHUB_OUTPUT
+          echo "" >> $GITHUB_OUTPUT
+          echo "\`\`\`bash" >> $GITHUB_OUTPUT
+          echo "git clone https://github.com/vasmelip/crypto-level-breakout-scanner.git" >> $GITHUB_OUTPUT
+          echo "cd crypto-level-breakout-scanner" >> $GITHUB_OUTPUT
+          echo "bash DEPLOY.sh" >> $GITHUB_OUTPUT
+          echo "\`\`\`" >> $GITHUB_OUTPUT
+          echo "" >> $GITHUB_OUTPUT
+          echo "## Features" >> $GITHUB_OUTPUT
+          echo "" >> $GITHUB_OUTPUT
+          echo "- 📊 Real-time level breakout analysis" >> $GITHUB_OUTPUT
+          echo "- 🎯 3-day pattern recognition" >> $GITHUB_OUTPUT
+          echo "- 📈 Interactive charts with canvas" >> $GITHUB_OUTPUT
+          echo "- 🎨 Dark mode UI" >> $GITHUB_OUTPUT
+          echo "- 📱 Responsive design" >> $GITHUB_OUTPUT
+          echo "" >> $GITHUB_OUTPUT
+          echo "## Deployment Options" >> $GITHUB_OUTPUT
+          echo "" >> $GITHUB_OUTPUT
+          echo "1. **Docker** - Containerized deployment" >> $GITHUB_OUTPUT
+          echo "2. **Nginx** - Fast static hosting" >> $GITHUB_OUTPUT
+          echo "3. **Apache** - Traditional web server" >> $GITHUB_OUTPUT
+          echo "4. **Node.js** - Full-stack deployment" >> $GITHUB_OUTPUT
+          echo "5. **GitHub Pages** - Free hosting" >> $GITHUB_OUTPUT
+          echo "" >> $GITHUB_OUTPUT
+          echo "---" >> $GITHUB_OUTPUT
+          echo "" >> $GITHUB_OUTPUT
+          echo "Made with ❤️ for crypto traders" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.tag.outputs.TAG_NAME }}
+          release_name: "Release ${{ steps.tag.outputs.TAG_NAME }}"
+          body: ${{ steps.release_notes.outputs.release_body }}
+          draft: false
+          prerelease: false
+
+      - name: Upload asset - index.html
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./index.html
+          asset_name: index.html
+          asset_content_type: text/html
+
+      - name: Notify deployment
+        run: |
+          echo "🚀 Release created successfully!"
+          echo ""
+          echo "Release: ${{ steps.tag.outputs.TAG_NAME }}"
+          echo "Repository: https://github.com/vasmelip/crypto-level-breakout-scanner"
+          echo "Live URL: https://vasmelip.github.io/crypto-level-breakout-scanner/"
